@@ -1,0 +1,17 @@
+{
+  "name": "react-perspective-carousel-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "9.5.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-spring": "^9.0.0-rc.3",
+    "react-use-gesture": "^7.0.15"
+  }
+}

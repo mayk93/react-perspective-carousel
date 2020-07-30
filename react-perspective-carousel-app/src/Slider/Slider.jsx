@@ -112,12 +112,17 @@ const Card = ({ id, text, computedStyle, x, y, zIndex, display }) => (
 );
 
 const Slider = ({ items, visible = 5 }) => {
-  const visibleSlidesPercentage = 100 / visible;
+  const usedVisible = visible % 2 === 0 ? visible - 1 : visible;
+  if (visible !== usedVisible) {
+    console.warn(`Perspective carousel visible slides must be an odd number, using ${usedVisible} slides`);
+  }
+
+  const visibleSlidesPercentage = 100 / usedVisible;
 
   const computedStyleCard = { flex: `1 0 ${visibleSlidesPercentage}%` };
 
   const [springs, set, stop] = useSprings(items.length, springLogicBuilder(
-    visible, visibleSlidesPercentage
+    usedVisible, visibleSlidesPercentage
   ));
 
   return (

@@ -119,23 +119,23 @@ const items = [
 export default function Home () {
   return (
     <>
-      <div>Only 3 visible</div>
-      <Slider items={items} visible={3}/>
-      <br />
-      <div>Only 5 visible</div>
-      <Slider items={items} visible={5}/>
-      <br />
-      <div>Only 7 visible</div>
-      <Slider items={items} visible={7}/>
-      <br />
-      <div>Only 9 visible</div>
-      <Slider items={items} visible={9}/>
-      <br />
+      {/*<div>Only 3 visible</div>*/}
+      {/*<Slider items={items} visible={3}/>*/}
+      {/*<br />*/}
+      {/*<div>Only 5 visible</div>*/}
+      {/*<Slider items={items} visible={5}/>*/}
+      {/*<br />*/}
+      {/*<div>Only 7 visible</div>*/}
+      {/*<Slider items={items} visible={7}/>*/}
+      {/*<br />*/}
+      {/*<div>Only 9 visible</div>*/}
+      {/*<Slider items={items} visible={9}/>*/}
+      {/*<br />*/}
       <div>Only 6 visible</div>
       <Slider items={items} visible={6}/>
       <br />
-      <div>Only 8 visible</div>
-      <Slider items={items} visible={8}/>
+      {/*<div>Only 8 visible</div>*/}
+      {/*<Slider items={items} visible={8}/>*/}
     </>
   )
 }

@@ -45,22 +45,30 @@ const items = [
     height: 200,
     text: 'Item 7'
   },
-  // {
-  //   css: 'url(https://images.pexels.com/photos/227675/pexels-photo-227675.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 300
-  // },
-  // {
-  //   css: 'url(https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 200
-  // },
-  // {
-  //   css: 'url(https://images.pexels.com/photos/327482/pexels-photo-327482.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 400
-  // },
-  // {
-  //   css: 'url(https://images.pexels.com/photos/911758/pexels-photo-911758.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 200
-  // },
+  {
+    id: 7,
+    css: 'url(https://images.pexels.com/photos/227675/pexels-photo-227675.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 300,
+    text: 'Item 8'
+  },
+  {
+    id: 8,
+    css: 'url(https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 200,
+    text: 'Item 9'
+  },
+  {
+    id: 9,
+    css: 'url(https://images.pexels.com/photos/327482/pexels-photo-327482.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 400,
+    text: 'Item 10'
+  },
+  {
+    id: 10,
+    css: 'url(https://images.pexels.com/photos/911758/pexels-photo-911758.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 200,
+    text: 'Item 11'
+  },
   // {
   //   css: 'url(https://images.pexels.com/photos/249074/pexels-photo-249074.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
   //   height: 150
@@ -109,5 +117,25 @@ const items = [
 // }
 
 export default function Home () {
-  return <Slider items={items} visible={5}/>;
+  return (
+    <>
+      <div>Only 3 visible</div>
+      <Slider items={items} visible={3}/>
+      <br />
+      <div>Only 5 visible</div>
+      <Slider items={items} visible={5}/>
+      <br />
+      <div>Only 7 visible</div>
+      <Slider items={items} visible={7}/>
+      <br />
+      <div>Only 9 visible</div>
+      <Slider items={items} visible={9}/>
+      <br />
+      <div>Only 6 visible</div>
+      <Slider items={items} visible={6}/>
+      <br />
+      <div>Only 8 visible</div>
+      <Slider items={items} visible={8}/>
+    </>
+  )
 }

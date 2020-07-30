@@ -94,8 +94,6 @@ const springLogicBuilder = (visible, visibleSlidesPercentage) => {
   };
 
   const springLogic = index => {
-    console.log(`${index} === parseInt(${middle}) ( which is ${parseInt(middle)} ) = `, index === parseInt(middle));
-
     const x = -index * visibleSlidesPercentage;
     const y = index < middle ? index * visibleSlidesPercentage : (visible - index - 1) * visibleSlidesPercentage;
     const z = index === parseInt(middle) ? 1 : index < middle ? 0 : getZIndex();
@@ -115,9 +113,9 @@ const Card = ({ id, text, computedStyle, x, y, zIndex, display }) => (
 
 const Slider = ({ items, visible = 5 }) => {
   const visibleSlidesPercentage = 100 / visible;
-  console.log('visibleSlidesPercentage: ', visibleSlidesPercentage);
 
-  const computedStyle = { flex: `1 0 ${visibleSlidesPercentage}%` };
+  const computedStyleCard = { flex: `1 0 ${visibleSlidesPercentage}%` };
+
   const [springs, set, stop] = useSprings(items.length, springLogicBuilder(
     visible, visibleSlidesPercentage
   ));
@@ -125,7 +123,7 @@ const Slider = ({ items, visible = 5 }) => {
   return (
     <div className="slider-container">
       {zip(items, springs).map(([item, spring]) => (
-        <Card key={item.id} computedStyle={computedStyle} {...item} {...spring} />
+        <Card key={item.id} computedStyle={computedStyleCard} {...item} {...spring} />
       ))}
     </div>
   );

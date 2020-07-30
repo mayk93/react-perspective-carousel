@@ -1,15 +1,16 @@
 import React, { useRef, useCallback } from 'react';
-import { useGesture } from 'react-use-gesture';
+import { useGesture, useDrag } from 'react-use-gesture';
 import { useSprings, animated } from 'react-spring';
 
-// const clamp = (value, min, max) => {
-//   if (value < min) {
-//     return min;
-//   } else if (value > max) {
-//     return max;
-//   }
-//   return value;
-// };
+const clamp = (value, min, max) => {
+  if (value < min) {
+    return min;
+  } else if (value > max) {
+    return max;
+  }
+  return value;
+};
+
 // const xAxisShift = 2.3;
 // const yAxisShift = 5;
 
@@ -81,7 +82,9 @@ import { useSprings, animated } from 'react-spring';
 //   );
 // }
 
-const zip = (arr1, arr2) => arr1.map((item, index) => [item, arr2[index]]);
+let originalX = [], originalY = [], originalZ = [];
+
+const zip = (...arrays) => [...arrays[0]].map((_, index) => arrays.map(array => array[index]));
 
 const springLogicBuilder = (visible, visibleSlidesPercentage) => {
   let zIndex = 0;
@@ -99,14 +102,47 @@ const springLogicBuilder = (visible, visibleSlidesPercentage) => {
     const z = index === parseInt(middle) ? 1 : index < middle ? 0 : getZIndex();
     const display = index < visible ? 'initial' : 'none';
 
-    return { x, y, zIndex: z, display };
+    originalX[index] = x;
+    originalY[index] = y;
+    originalZ[index] = z;
+
+    return { x, y, scale: 1, zIndex: z, display, immediate: key => key === 'zIndex' ? true : false };
   };
 
   return springLogic;
 };
 
-const Card = ({ id, text, computedStyle, x, y, zIndex, display }) => (
-  <animated.div className="slider-card" key={id} style={{ x, y, zIndex, display, ...computedStyle }}>
+const onDragBuilder = ({ index, set, spring }) => {
+  const onDrag = state => set(springIndex => {
+    if (springIndex === index) {
+      const { down, movement, xy } = state;
+      const [mx, my] = movement;
+
+      const newX = down ? mx + originalX[index] : originalX[index];
+      // const newY = down ? clamp(
+      //   my || originalY[index],
+      //   originalY[index] - 10,
+      //   originalY[index] + 10
+      // ) : originalY[index];
+      const newZ = down ? 10 : originalZ[index];
+      const newScale = down ? 1 : 5;
+
+      const newState = { x: newX, zIndex: newZ, scale: newScale }; // y: newY
+
+      return newState;
+    }
+  });
+
+  return onDrag;
+};
+
+const Card = ({ id, text, computedStyle, dragBind, x, y, zIndex, display }) => (
+  <animated.div
+    key={id}
+    className="slider-card"
+    style={{ x, y, zIndex, display, ...computedStyle }}
+    {...dragBind()}
+  >
     {text}
   </animated.div>
 );
@@ -118,17 +154,17 @@ const Slider = ({ items, visible = 5 }) => {
   }
 
   const visibleSlidesPercentage = 100 / usedVisible;
-
   const computedStyleCard = { flex: `1 0 ${visibleSlidesPercentage}%` };
 
   const [springs, set, stop] = useSprings(items.length, springLogicBuilder(
     usedVisible, visibleSlidesPercentage
   ));
+  const dragBinds = items.map((item, index) => useDrag(onDragBuilder({ index, set, spring: springs[index] })));
 
   return (
     <div className="slider-container">
-      {zip(items, springs).map(([item, spring]) => (
-        <Card key={item.id} computedStyle={computedStyleCard} {...item} {...spring} />
+      {zip(items, springs, dragBinds).map(([item, spring, dragBind]) => (
+        <Card key={item.id} computedStyle={computedStyleCard} dragBind={dragBind} {...item} {...spring} />
       ))}
     </div>
   );

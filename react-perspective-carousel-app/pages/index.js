@@ -7,40 +7,44 @@ const items = [
     id: 0,
     css: 'url(https://images.pexels.com/photos/416430/pexels-photo-416430.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
     height: 150,
-    text: 'Item 1',
+    text: 'Item 1'
   },
   {
     id: 1,
     css: 'url(https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
     height: 300,
-    text: 'Item 2',
+    text: 'Item 2'
   },
   {
     id: 2,
     css: 'url(https://images.pexels.com/photos/911738/pexels-photo-911738.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
     height: 300,
-    text: 'Item 3',
+    text: 'Item 3'
   },
   {
     id: 3,
     css: 'url(https://images.pexels.com/photos/358574/pexels-photo-358574.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
     height: 300,
-    text: 'Item 4',
+    text: 'Item 4'
   },
   {
     id: 4,
     css: 'url(https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
     height: 300,
-    text: 'Item 5',
-  }
-  // {
-  //   css: 'url(https://images.pexels.com/photos/96381/pexels-photo-96381.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 300
-  // },
-  // {
-  //   css: 'url(https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-  //   height: 200
-  // },
+    text: 'Item 5'
+  },
+  {
+    id: 5,
+    css: 'url(https://images.pexels.com/photos/96381/pexels-photo-96381.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 300,
+    text: 'Item 6'
+  },
+  {
+    id: 6,
+    css: 'url(https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
+    height: 200,
+    text: 'Item 7'
+  },
   // {
   //   css: 'url(https://images.pexels.com/photos/227675/pexels-photo-227675.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
   //   height: 300
@@ -105,5 +109,5 @@ const items = [
 // }
 
 export default function Home () {
-  return <Slider items={items} visible={3}/>;
+  return <Slider items={items} visible={5}/>;
 }

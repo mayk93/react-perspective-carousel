@@ -83,43 +83,50 @@ import { useSprings, animated } from 'react-spring';
 
 const zip = (arr1, arr2) => arr1.map((item, index) => [item, arr2[index]]);
 
-const springLogicBuilder = length => {
+const springLogicBuilder = (visible, visibleSlidesPercentage) => {
   let zIndex = 0;
-  const middle = length / 2;
-
-  console.log('length/2 or middle: ', middle);
+  const middle = visible / 2;
 
   const getZIndex = () => {
     const newZIndex = zIndex;
     zIndex = zIndex - 1;
     return newZIndex;
-  }
+  };
 
   const springLogic = index => {
-    console.log(`For length ${length} - index ${index} * 33 ( ${index * 33} ): `, length - index * 33);
+    console.log(`${index} === parseInt(${middle}) ( which is ${parseInt(middle)} ) = `, index === parseInt(middle));
 
-    const x = -index * 33; // 33 is width?
-    const y = index < middle ? index * 33 : (length - index - 1) * 33; // -1 might be based on odd / even
-    const z = index < middle ? 0 : index === middle ? 1 : getZIndex();
+    const x = -index * visibleSlidesPercentage;
+    const y = index < middle ? index * visibleSlidesPercentage : (visible - index - 1) * visibleSlidesPercentage;
+    const z = index === parseInt(middle) ? 1 : index < middle ? 0 : getZIndex();
+    const display = index < visible ? 'initial' : 'none';
 
-    return { x, y, z };
+    return { x, y, zIndex: z, display };
   };
 
   return springLogic;
 };
 
-const Card = ({ id, text, x, y, z }) => (
-  <animated.div className="slider-card" key={id} style={{ x, y, z }}>
+const Card = ({ id, text, computedStyle, x, y, zIndex, display }) => (
+  <animated.div className="slider-card" key={id} style={{ x, y, zIndex, display, ...computedStyle }}>
     {text}
   </animated.div>
 );
 
-const Slider = ({ items }) => {
-  const [springs, set, stop] = useSprings(items.length, springLogicBuilder(items.length));
+const Slider = ({ items, visible = 5 }) => {
+  const visibleSlidesPercentage = 100 / visible;
+  console.log('visibleSlidesPercentage: ', visibleSlidesPercentage);
+
+  const computedStyle = { flex: `1 0 ${visibleSlidesPercentage}%` };
+  const [springs, set, stop] = useSprings(items.length, springLogicBuilder(
+    visible, visibleSlidesPercentage
+  ));
 
   return (
     <div className="slider-container">
-      {zip(items, springs).map(([item, spring]) => <Card {...item} {...spring} />)}
+      {zip(items, springs).map(([item, spring]) => (
+        <Card key={item.id} computedStyle={computedStyle} {...item} {...spring} />
+      ))}
     </div>
   );
 };

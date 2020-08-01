@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGesture, useDrag } from 'react-use-gesture';
-import { useSprings, animated } from 'react-spring';
+import { animated, interpolate, useSprings } from 'react-spring';
+import debounce from 'lodash.debounce';
 
 // let originalX = [], originalY = [], originalZ = [];
 
@@ -59,9 +60,14 @@ const springLogicBuilder = ({ visible, total, offset, visibleSlidesPercentage })
     const realX = -1 * visibleSlidesPercentage * x;
     const realY = visibleSlidesPercentage * y;
 
-    console.log({ x, y, z, display, realX, realY });
-
-    return { x: realX, y: realY, zIndex: z, display, immediate: key => key === 'zIndex' ? true : false };
+    return {
+      x: realX,
+      y: realY,
+      zIndex: z,
+      scale: 1,
+      display,
+      immediate: key => key === 'zIndex' ? true : false
+    };
   };
 
   return { springLogic, fx, fy, fz, fd };
@@ -103,22 +109,22 @@ const springLogicBuilder = ({ visible, total, offset, visibleSlidesPercentage })
 /* End Logic Utils */
 
 /* Start UI Components */
-const Card = ({ id, text, computedStyle, x, y, zIndex, display }) => (
+const Card = ({ id, text, computedStyle, x, y, zIndex, scale, display, dragBind }) => (
   <animated.div
     key={id}
     className="slider-card"
-    style={{ x, y, zIndex, display, ...computedStyle }}
+    {...dragBind()}
+    style={{ x, y, zIndex, scale, display, ...computedStyle }}
   >
     {text}
   </animated.div>
 );
 
 const Slider = ({ items, visible = 5 }) => {
-  console.log('Slider');
-  // const [usedItems, setItems] = useState([...items]);
-
+  const [usedItems, setItems] = useState([...items]);
   const [offset, setOffset] = useState(0);
   const usedVisible = visible % 2 === 0 ? visible - 1 : visible;
+
   if (visible !== usedVisible) {
     console.warn(`Perspective carousel visible slides must be an odd number, using ${usedVisible} slides`);
   }
@@ -126,39 +132,61 @@ const Slider = ({ items, visible = 5 }) => {
   const visibleSlidesPercentage = 100 / usedVisible;
   const computedStyleCard = { flex: `1 0 ${visibleSlidesPercentage}%` };
 
-  // const offset = 4 % items.length;
-
   const { springLogic, fx, fy, fz, fd } = springLogicBuilder({
-    visible: usedVisible, total: items.length, visibleSlidesPercentage, offset
+    visible: usedVisible, total: usedItems.length, visibleSlidesPercentage, offset
   });
-  const [springs, set] = useSprings(items.length, springLogic);
+  const [springs, set] = useSprings(usedItems.length, springLogic);
 
-  useEffect(
-    () => {
-      set(index => springLogic(index));
-    }, // console.log('Effect called, springLogic, set: ', springLogic, fx, fy, fz, fd)
-    [offset]
-  );
+  const moveLeft = debounce(() => setItems(shiftLeft(usedItems, 1)), 100);
+  const moveRight = debounce(() => setItems(shiftRight(usedItems, 1)), 100);
 
-  // const dragBinds = usedItems.map((item, index) => useDrag(onDragBuilder({
-  //   index,
-  //   set,
-  //   setItems,
-  //   items: usedItems,
-  //   spring: springs[index]
-  // })));
+  // Lots of work to do on this one
+  const yMovement = (my, mx, index) => index < parseInt(visible / 2) ? my + mx : my - mx;
 
-  console.log('Slider offset: ', offset);
+  const onDragBuilder = ({ index }) => {
+    const onDrag = state => set(springIndex => {
+      if (index === springIndex) {
+        const { dragging, movement, direction } = state;
+        const oldState = springLogic(index);
+        if (dragging) {
+          const [mx] = movement;
+          const [dx] = direction;
+
+          // if (0.7 < dx && dx < 0.99) {
+          //   moveLeft();
+          // } else if (-0.7 > dx && dx > -0.99) {
+          //   moveRight();
+          // }
+
+          return {
+            ...oldState,
+            x: oldState.x + mx,
+            y: yMovement(oldState.y, mx, index),
+            zIndex: dragging ? 10 : fz(index),
+            scale: dragging ? 1.3 : 1
+          };
+        }
+        return oldState;
+      }
+    });
+    return onDrag;
+  };
+
+  const dragBinds = usedItems.map((_, index) => useDrag(onDragBuilder({ index })));
 
   return (
     <>
       <div className="slider-container">
-        {zip(items, springs).map(([item, spring]) => (
-          <Card key={item.id} computedStyle={computedStyleCard} {...item} {...spring} />
+        {zip(usedItems, springs, dragBinds).map(([item, spring, dragBind]) => (
+          <Card key={item.id} computedStyle={computedStyleCard} dragBind={dragBind} {...item} {...spring} />
         ))}
       </div>
-      <button onClick={() => setOffset((offset + 1) % items.length)}>
-        Increase Offset
+      <br/><br/><br/>
+      <button onClick={moveLeft}>
+        Shift Left
+      </button>
+      <button onClick={moveRight}>
+        Shift Right
       </button>
     </>
   );

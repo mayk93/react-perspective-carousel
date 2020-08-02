@@ -72,40 +72,6 @@ const springLogicBuilder = ({ visible, total, offset, visibleSlidesPercentage })
 
   return { springLogic, fx, fy, fz, fd };
 };
-
-// const onDragBuilder = ({ index, items, setItems, spring, set }) => {
-//   const onDrag = state => set(springIndex => {
-//     if (springIndex === index) {
-//       const { down, initial, movement, xy } = state;
-//
-//       const [ix] = initial;
-//       const [mx] = movement;
-//       const [x] = xy;
-//
-//       const newX = down ? mx + originalX[index] : originalX[index];
-//
-//       const newState = { x: newX };
-//
-//       const delta = ix - x;
-//       const movedLeft = delta > 50;
-//       const movedRight = delta < -50;
-//
-//       console.log('initial, movement, xy: ', initial, movement, xy);
-//       console.log('delta: ', delta);
-//       console.log({ movedLeft, movedRight });
-//
-//       if (movedLeft) {
-//         setItems(shiftLeft(items));
-//       } else if (movedRight) {
-//         setItems(shiftRight(items));
-//       }
-//
-//       return newState;
-//     }
-//   });
-//
-//   return onDrag;
-// };
 /* End Logic Utils */
 
 /* Start UI Components */
@@ -122,7 +88,6 @@ const Card = ({ id, text, computedStyle, x, y, zIndex, scale, display, dragBind 
 
 const Slider = ({ items, visible = 5 }) => {
   const [usedItems, setItems] = useState([...items]);
-  const [offset, setOffset] = useState(0);
   const usedVisible = visible % 2 === 0 ? visible - 1 : visible;
 
   if (visible !== usedVisible) {
@@ -133,7 +98,7 @@ const Slider = ({ items, visible = 5 }) => {
   const computedStyleCard = { flex: `1 0 ${visibleSlidesPercentage}%` };
 
   const { springLogic, fx, fy, fz, fd } = springLogicBuilder({
-    visible: usedVisible, total: usedItems.length, visibleSlidesPercentage, offset
+    visible: usedVisible, total: usedItems.length, visibleSlidesPercentage, offset: 0
   });
   const [springs, set] = useSprings(usedItems.length, springLogic);
 
@@ -141,33 +106,61 @@ const Slider = ({ items, visible = 5 }) => {
   const moveRight = debounce(() => setItems(shiftRight(usedItems, 1)), 100);
 
   // Lots of work to do on this one
-  const yMovement = (my, mx, index) => index < parseInt(visible / 2) ? my + mx : my - mx;
+  const yMovement = ({ oldY, mx, dx, dampen, index, target }) => {
+    const middle = parseInt(usedVisible / 2);
+    const draggedLeft = dx < 0;
+    const draggedRight = dx > 0;
+    if (index === middle) {
+      if (draggedLeft) {
+        return clamp(oldY + mx * dampen, 0, oldY);
+      } else if (draggedRight) {
+        return clamp(oldY - mx * dampen, 0, oldY);
+      }
+      return fy(target);
+    } else if (index < middle) {
+      return 0;
+    } else {
+      return 0;
+    }
+  };
+
+  // I think this needs isRange as well
+  const dChange = (t, d) => 0 + d <= t && t <= 5 + d ? 'initial' : 'none';
 
   const onDragBuilder = ({ index }) => {
     const onDrag = state => set(springIndex => {
+      // down
+      const { dragging, movement, direction, elapsedTime } = state;
+      const [mx] = movement;
+      const [dx] = direction;
+
+      const dampen = elapsedTime / (1500 * visibleSlidesPercentage * 2);
+      const stepsMoved = clamp(parseInt(mx * dampen), -usedVisible, usedVisible);
+      const target = clamp(
+        stepsMoved < 0 ? usedVisible + stepsMoved : index + stepsMoved,
+        0,
+        usedVisible - 1
+      );
+
+      const oldState = springLogic(index);
+      const targetState = springLogic(target);
+      const otherCardState = springLogic(springIndex);
+
       if (index === springIndex) {
-        const { dragging, movement, direction } = state;
-        const oldState = springLogic(index);
         if (dragging) {
-          const [mx] = movement;
-          const [dx] = direction;
-
-          // if (0.7 < dx && dx < 0.99) {
-          //   moveLeft();
-          // } else if (-0.7 > dx && dx > -0.99) {
-          //   moveRight();
-          // }
-
           return {
             ...oldState,
             x: oldState.x + mx,
-            y: yMovement(oldState.y, mx, index),
+            y: yMovement({ oldY: oldState.y, mx, dx, dampen, index, target }),
             zIndex: dragging ? 10 : fz(index),
             scale: dragging ? 1.3 : 1
           };
+        } else {
+          console.log('Target ', target, ' state: ', targetState);
+          return targetState;
         }
-        return oldState;
       }
+      return otherCardState;
     });
     return onDrag;
   };

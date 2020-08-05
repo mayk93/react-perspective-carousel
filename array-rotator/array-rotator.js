@@ -18,9 +18,4 @@ class CircularNumber {
   }
 }
 
-const rotator = (array, start, end) => {};
-
-module.exports = {
-  rotator,
-  CircularNumber
-};
+module.exports = CircularNumber;

@@ -48,17 +48,17 @@ class CircularNumber {
       this.value = this.value + value;
     }
   }
+
+  reset() {
+    this.value = 0;
+  }
 }
 
 // { visible, total, offset }
 const springLogicBuilder = ({ start, end, usedVisible, visibleSlidesPercentage }) => {
   const circularX = new CircularNumber({ start, end });
 
-  const fx = index => {
-    const result = circularX.value;
-    circularX.add(1);
-    return result;
-  };
+  const fx = index => index;
   const fy = index => {
     const startValue = start.value;
     const endValue = end.value;
@@ -72,48 +72,82 @@ const springLogicBuilder = ({ start, end, usedVisible, visibleSlidesPercentage }
     }
     throw Error('This case should not be reached');
   };
+  const fz = index => {
+    const startValue = start.value;
+    const endValue = end.value;
+    const middle = circularMiddle(start, end, usedVisible);
+
+    if (index === middle) {
+      return 0;
+    } else if (startValue <= index && index < middle) {
+      return -1 * (middle - index);
+    } else if (index > middle && index <= endValue) {
+      return -1 * (index - middle);
+    }
+    return null;
+  };
+  const fs = index => index === 0 || index === usedVisible - 1 ? 0.1 : 1;
 
   const scaleX = x => -1 * x * visibleSlidesPercentage;
   const scaleY = y => y * visibleSlidesPercentage;
 
-  // const fz = x => {
-  //   if (x === middle) {
-  //     return 0;
-  //   } else if (start <= x && x < middle) {
-  //     return -1 * (middle - x);
-  //   } else if (x > middle && x <= end) {
-  //     return -1 * (x - middle);
-  //   }
-  //   return null;
-  // };
   // const fd = x => start <= x && x <= end ? 'initial' : 'none';
 
   const springLogic = index => {
     const x = scaleX(fx(index));
     const y = scaleY(fy(index));
-    // const z = fz(index);
+    const z = fz(index);
+    const s = fs(index);
     // const display = fd(index);
 
-    // y: realY,
-    // zIndex: z,
-    // scale: 1,
-    // display,
+    console.log('springLogic called with index returns: ', index, { x, y, z, s });
 
     return {
       x,
       y,
+      zIndex: z,
+      scale: s,
       immediate: key => key === 'zIndex' ? true : false
     };
   };
 
-  return { springLogic, fx }; // , fy, fz, fd
+  return { springLogic, fx, fy, fz, fs, scaleX, scaleY };
 };
 
-const Card = ({ id, text, computedStyle, x, y }) => (
+const onDragBuilder = ({ index, set, springLogic }) => {
+  const onDrag = state => set(springIndex => {
+    return springLogic(springIndex)
+
+    // const { movement } = state;
+    // const [mx] = movement;
+    //
+    // const isDraggedCard = index === springIndex;
+    // const cardState = springLogic(springIndex);
+
+    // if(isDraggedCard) {
+    //   console.log(`Card ${springIndex} is the dragged card`);
+    // } else {
+    //   console.log(`Card ${springIndex} is NOT the dragged card`);
+    // }
+
+    // console.log('index, cardState.x, mx, cardState.x + mx: ', index, cardState.x, mx, cardState.x + mx);
+
+    // return {
+    //   ...cardState,
+    //   x: cardState.x + mx
+    // };
+
+    // return cardState;
+  });
+  return onDrag;
+};
+
+const Card = ({ id, text, computedStyle, dragBind, x, y, zIndex, scale }) => (
   <animated.div
     key={id}
     className="slider-card"
-    style={{ ...computedStyle, x, y }}
+    {...dragBind()}
+    style={{ ...computedStyle, x, y, zIndex, scale }}
   >
     {text}
   </animated.div>
@@ -140,14 +174,16 @@ const Slider = ({ items, visible = 5 }) => {
   });
   const [springs, set] = useSprings(usedItems.length, springLogic);
 
+  const dragBinds = usedItems.map((_, index) => useDrag(onDragBuilder({ index, set, springLogic })));
+
   const moveLeft = () => console.log('Left');
   const moveRight = () => console.log('Right');
 
   return (
     <>
       <div className="slider-container">
-        {zip(usedItems, springs).map(([item, spring]) => (
-          <Card key={item.id} computedStyle={computedStyleCard} {...item} {...spring} />
+        {zip(usedItems, springs, dragBinds).map(([item, spring, dragBind]) => (
+          <Card key={item.id} computedStyle={computedStyleCard} dragBind={dragBind} {...item} {...spring} />
         ))}
       </div>
       <br/><br/><br/>
